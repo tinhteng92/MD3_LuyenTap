@@ -19,6 +19,10 @@ foreign key (RN) references student(RN),
 Date datetime,
 mark float
 );
+
+ALTER TABLE studentTest 
+ADD PRIMARY KEY(testId, RN );
+
 insert into test values
 (1,'EPC'),
 (2,'DWMX'),
@@ -86,3 +90,72 @@ select * from DsThi;
 -- Câu 9: Sửa (Update) tuổi của tất cả các học viên mỗi người lên một tuổi. 
 update student set age = age + 1
 where RN >0;
+
+-- Câu 10: Thêm trường tên là Status có kiểu Varchar(10) vào bảng Student.
+ALTER TABLE student add status varchar(10);
+
+-- Câu 11: Cập nhật(Update) trường Status sao cho những học viên nhỏ hơn 30 tuổi sẽ nhận giá trị ‘Young’, 
+-- trường hợp còn lại nhận giá trị ‘Old’ sau đó hiển thị toàn bộ nội dung bảng Student lên như sau:
+-- SET SQL_SAFE_UPDATES = 0;
+
+-- update student set status = 'Young'
+-- where age < 30;
+-- update student
+-- set status = 'Old'
+-- where age = 30 or age > 30;
+-- SET SQL_SAFE_UPDATES = 1;-- 
+
+update student set Status = if(age < 30, 'Young', 'Old') where RN >0;
+
+-- Câu 12: Tạo view tên là vwStudentTestList hiển thị danh sách học viên và điểm thi, dánh sách phải sắp xếp tăng dần theo ngày thi như sau:
+CREATE VIEW vwStudentTestList AS
+select S.name, T.subTestName, ST.mark, ST.date
+from student S join studentTest ST on S.RN = ST.RN
+join test T on ST.testId = T.testId
+order by S.name;  
+
+select * from vwStudentTestList;
+
+-- Câu 13: Tạo một trigger tên là tgSetStatus sao cho khi sửa tuổi của học viên thi trigger này sẽ tự động cập nhật status theo quy tắc sau:
+-- Nếu tuổi nhỏ hơn 30 thì Status=’Young’
+-- Nếu tuổi lớn hơn hoặc bằng 30 thì Status=’Old’
+DELIMITER $$
+CREATE TRIGGER tgSetStatus 
+ before UPDATE on student
+ FOR EACH ROW
+BEGIN
+	set new.status = if(new.age < 30, 'Young','old'); 
+END;
+$$
+
+-- Câu 14: 
+CREATE VIEW view1 as
+Select s.Name, t.subTestName, st.mark
+From Student s
+Left join studentTest st on s.RN = st.RN
+LEFT JOIN Test t on st.testid = t.testid;
+
+drop procedure spViewStatus;
+DELIMITER $$
+CREATE procedure spViewStatus(IN nameHV varchar(50), IN nameMH varchar(50),OUT output1 varchar(50),out output2 float)
+BEGIN
+DECLARE diem float;
+	if nameHV not in (select Name from Student) or nameMH not in(select Subtestname from test) then
+		set output1='Khong tìm thấy';
+	else
+		SELECT Mark INTO diem FROM view1 WHERE view1.Name=nameHV and view1.Subtestname=nameMH;
+            set output2=diem;
+ 			IF diem>=5 then
+				SET output1='Đỗ';
+			ELSEIF diem<5 then
+				SET output1='Trượt';
+			ELSE
+				SET output1='Chưa thi';
+			end if;
+	end if;
+END$$
+
+
+call spViewStatus('Tuan Minh','SQL1',@a,@b);
+
+select @a as 'trạng thái' , @b as 'Điểm thi';
