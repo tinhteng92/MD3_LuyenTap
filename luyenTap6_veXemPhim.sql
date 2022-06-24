@@ -24,17 +24,20 @@ CREATE TABLE tblVe (
 PhimID int,
 GheID int,
 Ngay_chieu date,
-Trang_thai bit
+Trang_thai varchar(50)
 );
-
+drop table tblve;
 ALTER TABLE tblPhong ADD Primary key (PhongId);
-ALTER TABLE tblGhe ADD Primary key (GheId);
 ALTER TABLE tblPhim ADD Primary key (PhimId);
+ALTER TABLE tblGhe ADD Primary key (GheId);
+ALTER TABLE tblVe ADD Primary key (PhimId);
+
 
 ALTER TABLE tblGhe ADD foreign key (PhongId) references tblPhong(PhongId);
-ALTER TABLE tblVe ADD foreign key (PhimID) references tblPhim(PhimId);
-ALTER TABLE tblVe ADD foreign key (GheID) references tblGhe(GheId);
 
+ALTER TABLE tblVe ADD foreign key (PhimID) references tblPhim(PhimId);
+
+ALTER TABLE tblVe ADD foreign key (GheID) references tblGhe(GheId);
 Insert into tblPhim values
 (1, 'Em bé Hà Nôi', 'Tâm lý', 90),
 (2, 'Nhiệm vụ bất khả thi', 'Hành động', 100),
@@ -122,11 +125,11 @@ WHERE phimId > 0;
 
 -- Câu 12: Xóa tất cả các khóa ngoại trong các bảng trên.	
 ALTER TABLE tblGhe 
-DROP CONSTRAINT PhongId;
+DROP foreign key tblghe_ibfk_1;
 
 ALTER TABLE tblVe
-DROP CONSTRAINT PhimID,
-DROP CONSTRAINT GheID;
+DROP foreign key tblve_ibfk_1,
+DROP foreign key tblve_ibfk_2;
 
 -- Câu 13: Xóa dữ liệu ở bảng tblGhe
 DELETE from tblGhe;
